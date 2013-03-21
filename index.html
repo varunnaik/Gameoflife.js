@@ -14,8 +14,7 @@
 			margin: 0 auto;
 			text-align: center;
 			background: white;
-			border: 1px solid #aaaacc;
-			border-top: 2px solid #aaaadd;
+			border: 1px solid #999;
 			color: #343434;
 		}
 		h1 {
@@ -27,13 +26,22 @@
 			background: #fcfcfc;
 			padding: 30px;
 			font-size: 13px;
+			margin-top: 30px;
+		}
+		canvas {
+			border: 1px solid #000;
 		}
 	</style>
+	<script>
+		var start = function() {
+			var gol = new GameOfLife();
+		}
+	</script>
 </head>
-<body>
+<body onload="start()">
 	<section>
 		<h1>Game of Life Demonstration Page</h1>
-		<canvas id="gameoflife"></canvas>
+		<canvas id="life_canvas"></canvas>
 		<footer>
 		<p>Game of Life</p>
 		<a href="https://github.com/varunnaik/Gameoflife.js">Gameoflife.js on Github</a>

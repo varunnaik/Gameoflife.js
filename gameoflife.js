@@ -1,4 +1,4 @@
-var gameOfLife = function(settings) {
+var GameOfLife = function(settings) {
     
     // Setup the game
     
@@ -35,45 +35,76 @@ var gameOfLife = function(settings) {
     */
 	/* ************************ INITIALISE SETTINGS ***************************/
     this.zoomLevel = 1;
-    this.numRows = typeof settings.numRows !== 'undefined'? 
-														settings.numRows : 350;
-    this.numCols = typeof settings.numCols !== 'undefined'? 
-														settings.numCOls : 900;
-    this.elementId = typeof settings.elementId !== 'undefined'?
-                                            settings.elementId : 'life_canvas';
-    this.cellSize = typeof settings.cellSize !== 'undefined'?
-														settings.cellSize : 10;
-	this.borderColor = typeof settings.borderColor !== 'undefined'?
-											  settings.borderColor : '#000000';
-	this.deadCellBackgroundColor = 
-			typeof settings.deadCellBackgroundColor !== 'undefined'?
-								  settings.deadCellBackgroundColor : '#ff0000';
-	this.liveCellBackgroundColor = 
-			typeof settings.liveCellBackgroundColor !== 'undefined'?
-								  settings.liveCellBackgroundColor : '#0000ff';
-	this.emptyCellBackgroundColor = 
-			typeof settings.emptyCellBackgroundColor !== 'undefined'?
-								 settings.emptyCellBackgroundColor : '#ffffff';
-	this.differenteateDeadEmptyCells = 
-			typeof settings.differenteateDeadEmptyCells !== 'undefined'?
-								  settings.differenteateDeadEmptyCells : false;
-	this.allowClick = typeof settings.allowClick !== 'undefined'?
-													settings.allowClick : true;
-	this.enableReset = typeof settings.enableReset !== 'undefined'?
-												   settings.enableReset : true;
-	this.enableClear = typeof settings.enableClear !== 'undefined'?
-												   settings.enableClear : true;
-	this.enablePredefines = typeof settings.enablePredefines !== 'undefined'?
-											  settings.enablePredefines : true;
-	this.flashClear = typeof settings.flashClear !== 'undefined'?
-												   settings.flashClear : false;
+	this.numRows = 40;
+	this.numCols = 80;
+	this.elementId = 'life_canvas';
+	this.cellSize = 10;
+	this.borderColor = '#000000';
+	this.deadCellBackgroundColor = '#ff0000';
+	this.liveCellBackgroundColor = '#0000ff';
+	this.emptyCellBackgroundColor = '#ffffff';
+	this.differenteateDeadEmptyCells = false;
+	this.allowClick = true;
+	this.enableReset = true;
+	this.enableClear = true;
+	this.enablePredefines = true;
+	this.flashClear = true;
+	
+	if (typeof settings !== 'undefined') {
+		if (typeof settings.numRows !== 'undefined') {
+			this.numRows = settings.numRows;
+		}
+		if (typeof settings.numCols !== 'undefined') {
+			this.numCols = settings.numCols;
+		}
+		if (typeof settings.elementId !== 'undefined') {
+			this.elementId = settings.elementId;
+		}
+		if (typeof settings.cellSize !== 'undefined') {
+			this.cellSize = settings.cellSize;
+		}
+		if (typeof settings.borderColor !== 'undefined') {
+			this.borderColor = settings.borderColor;
+		}
+		if (typeof settings.deadCellBackgroundColor !== 'undefined') {
+			this.deadCellBackgroundColor = settings.deadCellBackgroundColor;
+		}
+		if (typeof settings.liveCellBackgroundColor !== 'undefined') {
+			this.liveCellBackgroundColor = settings.liveCellBackgroundColor;
+		}
+		if (typeof settings.emptyCellBackgroundColor !== 'undefined') {
+			this.emptyCellBackgroundColor = settings.emptyCellBackgroundColor;
+		}
+		if (typeof settings.differenteateDeadEmptyCells !== 'undefined') {
+			this.differenteateDeadEmptyCells = settings.differenteateDeadEmptyCells;
+		}
+		if (typeof settings.allowClick !== 'undefined') {
+			this.allowClick = settings.allowClick;
+		}
+		if (typeof settings.enableReset !== 'undefined') {
+			this.enableReset = settings.enableReset;
+		}
+		if (typeof settings.enableClear !== 'undefined') {
+			this.enableClear = settings.enableClear;
+		}
+		if (typeof settings.enablePredefines !== 'undefined') {
+			this.enablePredefines = settings.enablePredefines;
+		}
+		if (typeof settings.flashClear !== 'undefined') {
+			this.flashClear = settings.flashClear;
+		}
+	}
+	
 	/* ********************* END SETTINGS INITIALISATION **********************/
 	
     this.initCanvas = function() {
 		// Set up canvas and event handlers
         this.canvas = document.getElementById('life_canvas');
-        this.context = this.canvas.getContext('2d');
+		this.context = this.canvas.getContext('2d');
 		
+		/* Set Canvas Width and Height as specified */
+		this.canvas.height = ( this.numRows * this.cellSize ) ;
+		this.canvas.width = (this.numCols * this.cellSize );
 		
 		/* **Event handlers** */
 		
@@ -121,9 +152,12 @@ var gameOfLife = function(settings) {
 		// Clears the game state as well as the canvas
 		
 		this.clearCanvas();	
+	},
+	
+	this.initGame = function() {
+	
 	}
 	
-	
-	this.initGame();
 	this.initCanvas();
+	this.initGame();
 }
