@@ -3,8 +3,8 @@ var gameOfLife = function(settings) {
     // Setup the game
     
     /* 
-        settings.height = height of canvas
-        settings.width = width of canvas
+        settings.numRows = number of rows in the canvas
+        settings.numCols = number of columns in the canvas
         settings.cellSize = side of cell in px (default 10)
         settings.borderColor = border colour between cells and around canvas 
             (default black)
@@ -32,10 +32,13 @@ var gameOfLife = function(settings) {
         
         
         Animate List:
-    */    
+    */
+	/* ************************ INITIALISE SETTINGS ***************************/
     this.zoomLevel = 1;
-    this.height = typeof settings.height !== 'undefined'? settings.height : 350;
-    this.width = typeof settings.width !== 'undefined'? settings.width : 900;
+    this.numRows = typeof settings.numRows !== 'undefined'? 
+														settings.numRows : 350;
+    this.numCols = typeof settings.numCols !== 'undefined'? 
+														settings.numCOls : 900;
     this.elementId = typeof settings.elementId !== 'undefined'?
                                             settings.elementId : 'life_canvas';
     this.cellSize = typeof settings.cellSize !== 'undefined'?
@@ -64,9 +67,10 @@ var gameOfLife = function(settings) {
 											  settings.enablePredefines : true;
 	this.flashClear = typeof settings.flashClear !== 'undefined'?
 												   settings.flashClear : false;
-
-
+	/* ********************* END SETTINGS INITIALISATION **********************/
+	
     this.initCanvas = function() {
+		// Set up canvas and event handlers
         this.canvas = document.getElementById('life_canvas');
         this.context = this.canvas.getContext('2d');
 		
@@ -105,7 +109,21 @@ var gameOfLife = function(settings) {
 		// immediately clears the canvas.
         
     },
-
-
-
+	
+	this.updateBoard = function() {
+		// Update the board with the current state of the game
+		
+		// For each position that has changed state: update it on the canvas
+	
+	},
+	
+	this.clear = function() {
+		// Clears the game state as well as the canvas
+		
+		this.clearCanvas();	
+	}
+	
+	
+	this.initGame();
+	this.initCanvas();
 }
