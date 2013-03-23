@@ -104,7 +104,9 @@ var GameOfLife = function(settings) {
 		We store the row number and the columns in that row that are alive.
 		Therefore, if cells #45, 78, 91 on row #6 are alive and the rest are
 		dead, we represent it thus:
-		{6: [45,78,91]}
+		[[6] [45,78,91]]
+		All rows are present in the array, but only columns with living cells
+		are present.
 	*/	
 	this.previousGeneration = [];
 	this.currentGeneration = [];
@@ -149,12 +151,33 @@ var GameOfLife = function(settings) {
 		this.updateBoard();
     },
 
-    this.clearCanvas = function() {
-        // Clears the canvas. If this.flashClear is true, then animates a 
-		// flashing effect from top left to bottom right. If false, silently and
-		// immediately clears the canvas.
+    this.clearCanvas = function(effect) {
+        // Clears the canvas. Uses effect specified if any.
+		// "diagonal": From top left, a flash to the bottom right
+		// "cross": Vertical line from left to right, horizontal from top to
+		//		bottom. Intersection gets cleared
+		// "radiate": From centre, circle radiates outwards clearing everything
+		// "spiral": Spiral starts from top left and works its way towards
+		//		centre
+		// none: Instantly clears the canvas
+		
+		for (var x = 0; x < this.numRows; x++) {
+			for (var y = 0; y < this.numCols; y++) {
+				this.drawCell(x, y, this.emptyCellBackgroundCOlour);
+			}
+		}
         
     },
+	
+	this.boardKillCell = function(row, col) {
+		// Kills the cell at row, col on the Canvas		
+		this.drawCell (row, col, this.deadCellBackgroundColour);
+	},
+	
+	this.boardBringCellToLife = function() {
+		// Brings the cell at row, col to life on the Canvas
+		this.drawCell (row, col, this.liveCellBackgroundColour);
+	},
 	
 	this.updateBoard = function() {
 		// Update the board with the current state of the game
@@ -162,41 +185,41 @@ var GameOfLife = function(settings) {
 		// For each cell in previousGeneration not in currentGeneration: ded
 		for (var i = 0; i < this.previousGeneration.length; i++) {
 			for (var j = 0; j < this.previousGeneration[i].length; j++) {
-				if (this.c
-			}		
+				if (this.currentGeneration[i].indexOf(
+						this.previousGeneration[i][j] === -1) {
+					this.boardKillCell(i, this.previousGeneration[i][j]);
+				}
+			}
 		}
 		
 		// For each cell in currentGeneration not in previousGeneration: LIVE!
-		
+		for (var i = 0; i < this.currentGeneration.length; i++) {
+			for (var j = 0; j < this.currentGeneration.length; j++) {
+				if (this.previousGeneration[i].indexOf(
+						this.currentGeneration[i][j] === -1) {
+					this.boardBringCellToLife(i, this.currentGeneration[i][j]);
+				}
+			}
+		}		
 	}
+	
+	this.drawCell = function(row, col, color) {
+		// Draws a cell on the canvas. 
+		// Caller has to pass the colour of the cell - alive / dead / empty as
+		// rgba or hex values
+		// Border colour is determined from object
+		// Cellsize is determined from object.
 		
-	function drawCell(cell) {
+		var x = row * this.cellSize;
+		var y = col * this.cellSize;
 		
-		x = cell.col * this.cellSize;
-		y = cell.row * this.cellSize;
-
-		this.context.strokeStyle = 'rgba(242, 198, 65, 0.1)'
+		this.context.strokeStyle = this.borderColour;
 		this.context.strokeRect (x, y, this.cellSize, this.cellSize);
-		this.context.fillStyle = 'rgb(200, 118, 138)';
-		this.context.fillRect (x, y, this.cellSize, this.cellSize);
+		this.context.fillStyle = colour;
+		this.context.fillRect(x, y, this.cellSize, this.cellSize);
 	
 	}
 	
-	for (var row = 0; row < this.numRows; row++) {
-		for (var column = 0; column < this.numCols; column++) {
-			drawCell.call(this,{col: column, row: row, alive: true});
-		}
-	}
-	
-		// For each position that has changed state: update it on the canvas
-	
-	},
-	
-	this.clear = function() {
-		// Clears the game state as well as the canvas
-		
-		this.clearCanvas();	
-	},
 	
 	/* ********************* END CANVAS AND DRAWING ***************************/
 	
@@ -340,6 +363,12 @@ var GameOfLife = function(settings) {
 	/* ********************* END GAME OF LIFE *********************************/
 
 	/* ********************* Play the game ************************************/
+	
+	this.clear = function() {
+		// Clears the game state as well as the canvas
+		
+		this.clearCanvas();	
+	},
 	
 	this.playGame = function() {
 		// Plays the game continuously
