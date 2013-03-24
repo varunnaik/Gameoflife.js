@@ -20,6 +20,7 @@ var GameOfLife = function(settings) {
         settings.initialState = initial state of canvas (see below)
         settings.animateList = list of games and how long each should play
             (see below)
+		settings.initialRules = Rules to start the game with
         settings.allowClick = allow users to click on a cell to make it alive
         settings.enableReset = show reset button at bottom right if mouse enters
             canvas. Resets the canvas to its initial state.
@@ -29,12 +30,16 @@ var GameOfLife = function(settings) {
             bottom right if mouse enters canvas
         settings.flashClear = whether to clear the canvas with a flash animation
             or to simply clear it instantly
+		settings.enableRuleChange = is the user allowed to change rules
+			during the game?
         settings.elementId = ID of the <canvas> to use to show this
             
         Initial State:
         
         
         Animate List:
+		
+		Initial Rules
     */
 	/* ************************ INITIALISE SETTINGS ***************************/
     this.zoomLevel = 1;
@@ -54,8 +59,9 @@ var GameOfLife = function(settings) {
 	this.enableReset = true;
 	this.enableClear = true;
 	this.enablePredefines = true;
-	this.flashClear = true;	
-	
+	this.flashClear = true;
+	this.rules = true;
+
 	if (typeof settings !== 'undefined') {
 		if (typeof settings.numRows !== 'undefined') {
 			this.numRows = settings.numRows;
@@ -72,8 +78,8 @@ var GameOfLife = function(settings) {
 		if (typeof settings.cellSize !== 'undefined') {
 			this.cellSize = settings.cellSize;
 		}
-		if (typeof settings.bordercolour !== 'undefined') {
-			this.bordercolour = settings.bordercolour;
+		if (typeof settings.borderColour !== 'undefined') {
+			this.borderColour = settings.borderColour;
 		}
 		if (typeof settings.drawBorder !== 'undefined') {
 			this.drawBorder = settings.drawBorder;
@@ -81,14 +87,14 @@ var GameOfLife = function(settings) {
 		if (typeof settings.drawFrame !== 'undefined') {
 			this.drawFrame = settings.drawFrame;
 		}
-		if (typeof settings.deadCellBackgroundcolour !== 'undefined') {
-			this.deadCellBackgroundcolour = settings.deadCellBackgroundcolour;
+		if (typeof settings.deadCellBackgroundColour !== 'undefined') {
+			this.deadCellBackgroundColour = settings.deadCellBackgroundColour;
 		}
-		if (typeof settings.liveCellBackgroundcolour !== 'undefined') {
-			this.liveCellBackgroundcolour = settings.liveCellBackgroundcolour;
+		if (typeof settings.liveCellBackgroundColour !== 'undefined') {
+			this.liveCellBackgroundColour = settings.liveCellBackgroundColour;
 		}
-		if (typeof settings.emptyCellBackgroundcolour !== 'undefined') {
-			this.emptyCellBackgroundcolour = settings.emptyCellBackgroundcolour;
+		if (typeof settings.emptyCellBackgroundColour !== 'undefined') {
+			this.emptyCellBackgroundColour = settings.emptyCellBackgroundColour;
 		}
 		if (typeof settings.differenteateDeadEmptyCells !== 'undefined') {
 			this.differenteateDeadEmptyCells = settings.differenteateDeadEmptyCells;
@@ -120,7 +126,28 @@ var GameOfLife = function(settings) {
 	*/	
 	this.previousGeneration = [];
 	this.currentGeneration = [];
+	this.generationNumber = 0; // Which generation is the current generation?
+	this.intervalHandle = null; // SetInterval handle used when running game
 	/* ********************* END SETTINGS INITIALISATION **********************/
+	
+	
+	/* ********************* PRESET PATTERNS **********************************/
+	this.patternLibrary = {
+		"1": {width: 3, height: 3, name: "Glider", pattern:
+			{0: [1], 1: [2], 2: [0,1,2]}},
+		"2": {width: 2, height: 2, name: "Stil Life (Block)", pattern:
+			{0: [0,1], 1: [0,1]}},
+		"3": {width: 3, height: 3, name: "Blinker", pattern:
+			{0: [0,1,2]}},
+		"4": {width: 36, height: 9, name: "Gosper Glider Gun", pattern:
+			{0: [24], 1: [22,24], 2: [12,13,20,21,34,35], 3: [11,15,20,21,34,35],
+			4: [0,1,10,16,20,21], 5: [0,1,10,14,16,17,22,24],  6: [10,16,24],
+			7: [11,15], 8: [12,13]}}
+	}
+
+	
+	
+	/* ********************* END PRESET PATTERNS ******************************/
 	
 	/* ********************* CANVAS AND DRAWING *******************************/
 	
@@ -147,6 +174,12 @@ var GameOfLife = function(settings) {
 		
 		if (this.enableClick) {
 			// Register click event listener
+			
+			document.getElementById(this.elementId).addEventListener('click', 
+				function(event) {
+									
+				}
+			);
 		
 		}
 		
@@ -243,6 +276,22 @@ var GameOfLife = function(settings) {
 	
 	/* ********************* END CANVAS AND DRAWING ***************************/
 	
+	/* ********************* EVENTS *******************************************/
+	
+	this.mouseDown = function(event) {
+	
+	}
+	
+	this.mouseMove = function(event) {
+	
+	}
+	
+	this.mouseUp = function(event) {
+	
+	}
+	
+	/* ********************* END EVENTS ***************************************/
+	
 	/* ********************* GAME OF LIFE *************************************/
 	
 	this.tick = function() {
@@ -298,11 +347,75 @@ var GameOfLife = function(settings) {
 	
 	
 	/* ********************* END GAME OF LIFE *********************************/
+	
+	/* ******************* GAME RULES AND PARAMETERS **************************/
+	this.loadPattern = function(patternId, offsetStartX, offsetStartY, centre) {
+		// Loads the specified pattern from the internal pattern library
+		// If the selected pattern is too large for the board, throws a Pattern
+		// Too Large exception.
+		// If offsetStartX and offsetStartY are *both* set, renders the pattern
+		// Offset to that position from 0,0
+		// Otherwise, if centre is set, centres the pattern on the canvas
+		
+		if (typeof this.patternLibrary[patternId] === 'undefined') {
+			throw ("Pattern not found: " + patternId + ".");
+		}
+			
+		if (this.numRows < this.patternLibrary[patternId].height || 
+				this.numCols < this.patternLibrary[patternId].width) {
+			throw ("Pattern too large.");
+		}
+		
+		var pattern = this.patternLibrary[patternId];
+		
+		if (centre) {
+			// Draw the pattern at the centre of the canvas.
+			// Get centre of canvas
+			var centreY = this.numRows/2;
+			var centreX = this.numCols/2;
+			// Get centre of pattern
+			var patternCentreY = pattern.height / 2;
+			var patternCentreX = pattern.width / 2;
+			// To match centre of both, subtract the two	
+			var offsetStartY = parseInt(centreX - patternCentreX);
+			var offsetStartX = parseInt(centreY - patternCentreY);
+		} else {
+			if (typeof offsetStartX === 'undefined') {
+				var offsetStartX = 0;
+			} 
+			if (typeof offsetStartY === 'undefined') {
+				var offsetStartY = 0;
+			}
+		}
+		console.log(offsetStartX, offsetStartY);
+		// Draw the pattern into the internal array
+		for (var x in pattern.pattern) {
+			row = parseInt(x) + offsetStartX;
+			for (var y in pattern.pattern[x]) {				
+				col = pattern.pattern[x][y] + offsetStartY;
+				console.log(row, col);
+				this.previousGeneration[row][col] = 1;
+			}			
+		}		
+	}
+	
+	this.changeRules = function(ruleId) {
+		// Changes the rules of the game used by evolve()
+		
+	}	
+	/* ******************* END GAME RULES AND PARAMETERS **********************/
 
 	/* ********************* Play the game ************************************/
 	
 	this.clear = function() {
 		// Clears the game state as well as the canvas
+		
+		for (var i = 0; i < this.numRows; i++) {
+			for (var j = 0; j < this.numCols; j++) {
+				this.previousGeneration[i][j] = 0;
+				this.currentGeneration[i][j] = 0;
+			}
+		}
 		
 		this.clearCanvas();	
 	},
@@ -310,7 +423,7 @@ var GameOfLife = function(settings) {
 	this.playGame = function() {
 		// Plays the game continuously
 		console.log("Play.");
-	
+
 		// Evolve the current generation
 		this.tick();
 		
@@ -324,20 +437,24 @@ var GameOfLife = function(settings) {
 				this.currentGeneration[i][j] = 0;
 			}
 		}
+	}
+	
+	this.startGame = function() {
+		// Starts playing the game
 		
-		this.counter += 1;
-		//if (this.counter == 3) return;
-
+		if (this.intervalHandle !== null) throw "Game already in progress!";
+		
 		var _this = this;
-		
 		// Prepare next call to tick
-		setTimeout(function () {
+		this.intervalHandle = setInterval(function () {
 			// Closure to call play game
 			_this.playGame();
 		}, this.speed);
 	}
 		
 	this.initGame = function() {
+		// Initialises internal data structures and starts playing the game
+		
 		this.counter = 0;
 		this.previousGeneration = [];
 		this.currentGeneration = [];
@@ -349,15 +466,10 @@ var GameOfLife = function(settings) {
 				this.currentGeneration[x][y] = 0;
 			}
 		}
-		// Test Glider
-		this.previousGeneration[0][2] = 1;
-		this.previousGeneration[1][3] = 1;
-		this.previousGeneration[2][1] = 1;
-		this.previousGeneration[2][2] = 1;
-		this.previousGeneration[2][3] = 1;
-		
+				
 		this.clear();
-		this.playGame();
+		this.loadPattern(4, 0, 0, true);
+		this.startGame();		
 	}
 	
 	this.initCanvas();

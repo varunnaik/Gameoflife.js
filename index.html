@@ -31,13 +31,18 @@
 	</style>
 	<script>
 		var start = function() {
-			var gol = new GameOfLife({drawBorder: true});
+			var gol = new GameOfLife({
+			liveCellBackgroundColour: '#894D19',
+			emptyCellBackgroundColour: '#D9D199', 
+			deadCellBackgroundColour: '#BF8232', 
+			borderColour: '#F2E6C0'			
+			});
 		}
 	</script>
 </head>
 <body onload="start()">
 	<section>
-		<h1>Game of Life Demonstration Page</h1>
+		<h1>Game of Life</h1>
 		<canvas id="life_canvas"></canvas>
 		<footer>
 		<p>Game of Life</p>
