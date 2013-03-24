@@ -9,6 +9,7 @@ var GameOfLife = function(settings) {
 		settings.speed = how many milliseconds between generations
         settings.bordercolour = border colour between cells and around canvas 
             (default black)
+		settings.drawBorder = draws border around each cell if true
         settings.deadCellBackgroundcolour = background colour of dead cell
         settings.liveCellBackgroundColour = background colour of live cell
         settings.emptyCellBackgroundColour = background colour of empty cell 
@@ -42,6 +43,7 @@ var GameOfLife = function(settings) {
 	this.elementId = 'life_canvas';
 	this.cellSize = 10;
 	this.borderColour = '#000000';
+	this.drawBorder = true;
 	this.deadCellBackgroundColour = '#ff0000';
 	this.liveCellBackgroundColour = '#0000ff';
 	this.emptyCellBackgroundColour = '#ffffff';
@@ -70,6 +72,9 @@ var GameOfLife = function(settings) {
 		}
 		if (typeof settings.bordercolour !== 'undefined') {
 			this.bordercolour = settings.bordercolour;
+		}
+		if (typeof settings.drawBorder !== 'undefined') {
+			this.drawBorder = settings.drawBorder;
 		}
 		if (typeof settings.deadCellBackgroundcolour !== 'undefined') {
 			this.deadCellBackgroundcolour = settings.deadCellBackgroundcolour;
@@ -181,7 +186,7 @@ var GameOfLife = function(settings) {
 	
 	this.updateBoard = function() {
 		// Update the board with the current state of the game
-		console.log("UPDATE");
+
 		// For each cell in previousGeneration not in currentGeneration: ded
 		for (var i = 0; i < this.numRows; i++) {
 			for (var j = 0; j < this.numCols; j++) {
@@ -206,11 +211,17 @@ var GameOfLife = function(settings) {
 		
 		var x = row * this.cellSize;
 		var y = col * this.cellSize;
-
-		this.context.strokeStyle = this.borderColour;
-		this.context.strokeRect (x, y, this.cellSize-1, this.cellSize-1);
+		
+		if (this.drawBorder) {
+			var cellSize = this.cellSize - 1; // Account for space taken by border
+			this.context.strokeStyle = this.borderColour;
+			this.context.strokeRect (x, y, cellSize, cellSize);
+		} else {
+			var cellSize = this.cellSize;
+		}		
+		
 		this.context.fillStyle = colour;
-		this.context.fillRect(x, y, this.cellSize-1, this.cellSize-1);
+		this.context.fillRect(x, y, cellSize, cellSize);
 	
 	}
 	
