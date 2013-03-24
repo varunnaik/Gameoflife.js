@@ -7,9 +7,9 @@ var GameOfLife = function(settings) {
         settings.numCols = number of columns in the canvas
         settings.cellSize = side of cell in px (default 10)
 		settings.speed = how many milliseconds between generations
-        settings.borderColor = border colour between cells and around canvas 
+        settings.bordercolour = border colour between cells and around canvas 
             (default black)
-        settings.deadCellBackgroundColor = background colour of dead cell
+        settings.deadCellBackgroundcolour = background colour of dead cell
         settings.liveCellBackgroundColour = background colour of live cell
         settings.emptyCellBackgroundColour = background colour of empty cell 
             (a cell that was never visited)
@@ -41,10 +41,10 @@ var GameOfLife = function(settings) {
 	this.speed = 100;
 	this.elementId = 'life_canvas';
 	this.cellSize = 10;
-	this.borderColor = '#000000';
-	this.deadCellBackgroundColor = '#ff0000';
-	this.liveCellBackgroundColor = '#0000ff';
-	this.emptyCellBackgroundColor = '#ffffff';
+	this.borderColour = '#000000';
+	this.deadCellBackgroundColour = '#ff0000';
+	this.liveCellBackgroundColour = '#0000ff';
+	this.emptyCellBackgroundColour = '#ffffff';
 	this.differenteateDeadEmptyCells = false;
 	this.allowClick = true;
 	this.enableReset = true;
@@ -68,17 +68,17 @@ var GameOfLife = function(settings) {
 		if (typeof settings.cellSize !== 'undefined') {
 			this.cellSize = settings.cellSize;
 		}
-		if (typeof settings.borderColor !== 'undefined') {
-			this.borderColor = settings.borderColor;
+		if (typeof settings.bordercolour !== 'undefined') {
+			this.bordercolour = settings.bordercolour;
 		}
-		if (typeof settings.deadCellBackgroundColor !== 'undefined') {
-			this.deadCellBackgroundColor = settings.deadCellBackgroundColor;
+		if (typeof settings.deadCellBackgroundcolour !== 'undefined') {
+			this.deadCellBackgroundcolour = settings.deadCellBackgroundcolour;
 		}
-		if (typeof settings.liveCellBackgroundColor !== 'undefined') {
-			this.liveCellBackgroundColor = settings.liveCellBackgroundColor;
+		if (typeof settings.liveCellBackgroundcolour !== 'undefined') {
+			this.liveCellBackgroundcolour = settings.liveCellBackgroundcolour;
 		}
-		if (typeof settings.emptyCellBackgroundColor !== 'undefined') {
-			this.emptyCellBackgroundColor = settings.emptyCellBackgroundColor;
+		if (typeof settings.emptyCellBackgroundcolour !== 'undefined') {
+			this.emptyCellBackgroundcolour = settings.emptyCellBackgroundcolour;
 		}
 		if (typeof settings.differenteateDeadEmptyCells !== 'undefined') {
 			this.differenteateDeadEmptyCells = settings.differenteateDeadEmptyCells;
@@ -120,8 +120,8 @@ var GameOfLife = function(settings) {
 		this.context = this.canvas.getContext('2d');
 		console.log(this.context);
 		/* Set Canvas Width and Height as specified */
-		this.canvas.height = ( this.numRows * this.cellSize ) ;
-		this.canvas.width = (this.numCols * this.cellSize );
+		this.canvas.height = ( this.numRows * this.cellSize) ;
+		this.canvas.width = (this.numCols * this.cellSize);
 		
 		/* **Event handlers** */
 		
@@ -148,7 +148,7 @@ var GameOfLife = function(settings) {
 			// set up the event handler
 		}
 		
-		this.updateBoard();
+		//this.updateBoard();
     },
 
     this.clearCanvas = function(effect) {
@@ -163,7 +163,7 @@ var GameOfLife = function(settings) {
 		
 		for (var x = 0; x < this.numRows; x++) {
 			for (var y = 0; y < this.numCols; y++) {
-				this.drawCell(x, y, this.emptyCellBackgroundCOlour);
+				this.drawCell(y, x, this.emptyCellBackgroundColour);
 			}
 		}
         
@@ -171,39 +171,33 @@ var GameOfLife = function(settings) {
 	
 	this.boardKillCell = function(row, col) {
 		// Kills the cell at row, col on the Canvas		
-		this.drawCell (row, col, this.deadCellBackgroundColour);
+		this.drawCell (col, row, this.deadCellBackgroundColour);
 	},
 	
-	this.boardBringCellToLife = function() {
+	this.boardBringCellToLife = function(row, col) {
 		// Brings the cell at row, col to life on the Canvas
-		this.drawCell (row, col, this.liveCellBackgroundColour);
+		this.drawCell (col, row, this.liveCellBackgroundColour);
 	},
 	
 	this.updateBoard = function() {
 		// Update the board with the current state of the game
-		
+		console.log("UPDATE");
 		// For each cell in previousGeneration not in currentGeneration: ded
-		for (var i = 0; i < this.previousGeneration.length; i++) {
-			for (var j = 0; j < this.previousGeneration[i].length; j++) {
-				if (this.currentGeneration[i].indexOf(
-						this.previousGeneration[i][j] === -1) {
-					this.boardKillCell(i, this.previousGeneration[i][j]);
+		for (var i = 0; i < this.numRows; i++) {
+			for (var j = 0; j < this.numCols; j++) {
+				if (this.previousGeneration[i][j] && 
+						!this.currentGeneration[i][j]) {
+					this.boardKillCell(i, j);
 				}
+				if (this.currentGeneration[i][j] && 
+						!this.previousGeneration[i][j]) {
+					this.boardBringCellToLife(i, j);
+				}				
 			}
 		}
-		
-		// For each cell in currentGeneration not in previousGeneration: LIVE!
-		for (var i = 0; i < this.currentGeneration.length; i++) {
-			for (var j = 0; j < this.currentGeneration.length; j++) {
-				if (this.previousGeneration[i].indexOf(
-						this.currentGeneration[i][j] === -1) {
-					this.boardBringCellToLife(i, this.currentGeneration[i][j]);
-				}
-			}
-		}		
 	}
 	
-	this.drawCell = function(row, col, color) {
+	this.drawCell = function(row, col, colour) {
 		// Draws a cell on the canvas. 
 		// Caller has to pass the colour of the cell - alive / dead / empty as
 		// rgba or hex values
@@ -212,11 +206,11 @@ var GameOfLife = function(settings) {
 		
 		var x = row * this.cellSize;
 		var y = col * this.cellSize;
-		
+
 		this.context.strokeStyle = this.borderColour;
-		this.context.strokeRect (x, y, this.cellSize, this.cellSize);
+		this.context.strokeRect (x, y, this.cellSize-1, this.cellSize-1);
 		this.context.fillStyle = colour;
-		this.context.fillRect(x, y, this.cellSize, this.cellSize);
+		this.context.fillRect(x, y, this.cellSize-1, this.cellSize-1);
 	
 	}
 	
@@ -235,113 +229,30 @@ var GameOfLife = function(settings) {
 			Get elements of new list not in old list and mark alive
 			Assign old = new.
 		*/
-		
-		// For each row
-		for (var i in this.previousGeneration) {
-			var row = this.previousGeneration[i];
-			
-			// For each column
-			for (var j = 0; j < row.length; j++) {
-				var col = this.previousGeneration[i][j];
-				
-				// Evolve the neighbours of the cell at row, col
-				var neighbours = this.getLivingCellNeighbourhood(row, col);
-				for (var k = 0; k < this.neighbours.length; k++) {
-					if (this.evolveCell(neighbours[k][0], neighbours[k][1])) {
-						this.currentGeneration[neighbours[k][0]].push(
-								neighbours[k][1]
-						);					
-					}
-				}
 
-				// Evolve the cell at row, col
-				if (this.evolveCell(row, col)) {
-					this.currentGeneration[row].push(col);
+		// For each row
+		var count = 0;
+		for (var i = 0; i < this.numRows; i++) {
+			for (var j = 0; j < this.numCols; j++) {				
+				if (this.evolve(i, j)) {					
+					this.currentGeneration[i][j] = 1;
+					count += 1;
 				}
 			}
 		}
-	
-	},
-	
-	this.isCellAlive = function(row, col) {
-		// Returns true if the cell at row, col is alive
-		// False otherwise
-		if (typeof this.previousGeneration[row] === 'undefined') {
-			return false;
-		}
-		if (this.previousGeneration[row].indexOf(col) > -1) {
-			return true;
-		}
-		return false;
+		console.log("Evolved " + count + " of " + (this.numRows * this.numCols));
 	}
 	
-	this.getLivingCellNeighbourhood = function(row, col) {
-		// Given a cell located at row and col, return an array containing
-		// the row and cols of its neighbours that are alive
-		// Example: Given row = 10 and col = 10, return
-		// [[9,9],[9,10],[9,11],[10,9],[10,11],[11,9],[11,10],[11,11]]
-		// ASSUMING all neighbours are alive
+	this.evolve = function(row, col) {
+		// Returns true if cell at row, col should live and false if it should die
 		
-		var previousRow = row == 0? this.numRows : row - 1;
-		var previousColumn = col == 0? this.numCols : col - 1;
+		var previousRow = row == 0? this.numRows-1 : row - 1;
+		var previousColumn = col == 0? this.numCols-1 : col - 1;
 		var nextRow = (row + 1) % this.numRows;
 		var nextColumn = (col + 1) % this.numCols;
 		
-		var neighbourhood = [];
-		
-		if (this.isCellAlive(previousRow, previousColumn)) {
-			neighbourhood.push([previousRow, previousColumn]);
-		}
-		if (this.isCellAlive(row, previousColumn)) {
-			neighbourhood.push([row, previousColumn]);
-		}
-		if (this.isCellAlive(nextRow, previousColumn)) {
-			neighbourhood.push([nextRow, previousColumn]);
-		}
-		if (this.isCellAlive(previousRow, col)) {
-			neighbourhood.push([previousRow, col]);
-		}
-		if (this.isCellAlive(nextRow, col)) {
-			neighbourhood.push([nextRow, col]);
-		}
-		if (this.isCellAlive(previousRow, nextColumn)) {
-			neighbourhood.push([previousRow, nextColumn]);
-		}
-		if (this.isCellAlive(row, nextColumn)) {
-			neighbourhood.push([row, nextColumn]);
-		}
-		if (this.isCellAlive(nextRow, nextColumn)) {
-			neighbourhood.push([nextRow, nextColumn]);
-		}
-		return neighbourhood;
-	
-	}
-	
-	this.evolveCell = function(row, col) {
-		// Evolve the cell located at this.previousGeneration[row][cell]
-		// Return true if alive or false if dead
-		// Parameters: 
-		// row: row of cell to evolve, index to this.previousGeneration
-		// col: column of cell to evolve, index to this.previousGeneration[row]
-		// Return:
-		// true: Cell is alive after evolution, 
-		// false: Cell is dead after evolution
-		
 		var aliveCount = 0;
 		var currentCellAlive = this.previousGeneration[row][col];
-		
-		var neighbours = this.getLivingCellNeighbourhood(row, col);
-		
-		for (var i = 0; i < neighbourhood.length; i++) {
-			if (this.previousGeneration[neighbours[i][0], neighbours[i][1]) {
-				aliveCount += 1;
-			}		
-		}
-		/*
-		var previousRow = row == 0? this.numRows : row - 1;
-		var previousColumn = col == 0? this.numCols : col - 1;
-		var nextRow = (row + 1) % this.numRows;
-		var nextColumn = (col + 1) % this.numCols;		
 		
 		if (this.previousGeneration[previousRow][previousColumn]) aliveCount+=1;
 		if (this.previousGeneration[row][previousColumn]) aliveCount+=1;
@@ -351,13 +262,13 @@ var GameOfLife = function(settings) {
 		if (this.previousGeneration[previousRow][nextColumn]) aliveCount+=1;
 		if (this.previousGeneration[row][nextColumn]) aliveCount+=1;
 		if (this.previousGeneration[nextRow][nextColumn]) aliveCount+=1;
-		*/
+		
 		if (currentCellAlive && aliveCount < 2) return false;
-		if (currentCellAlive && (2 <= aliveCount <= 3) return true;
+		if (currentCellAlive && (aliveCount == 2 || aliveCount == 3)) return true;
 		if (currentCellAlive && aliveCount > 2) return false;
 		if (! currentCellAlive && aliveCount == 3) return true;
-		
-	},
+		return false;	
+	}
 	
 	
 	/* ********************* END GAME OF LIFE *********************************/
@@ -372,24 +283,55 @@ var GameOfLife = function(settings) {
 	
 	this.playGame = function() {
 		// Plays the game continuously
+		console.log("Play.");
 	
 		// Evolve the current generation
 		this.tick();
 		
 		// Update the board
-		this.updateboard();
-		
+		this.updateBoard();
+
 		// Prepare for next generation
-		this.previousGeneration = this.currentGeneration;
+		for (var i = 0; i < this.numRows; i++) {
+			for (var j = 0; j < this.numCols; j++) {
+				this.previousGeneration[i][j] = this.currentGeneration[i][j];
+				this.currentGeneration[i][j] = 0;
+			}
+		}
+		
+		this.counter += 1;
+		//if (this.counter == 3) return;
+
+		var _this = this;
 		
 		// Prepare next call to tick
-		setTimeout(this.playGame, this.speed);
+		setTimeout(function () {
+			// Closure to call play game
+			_this.playGame();
+		}, this.speed);
 	}
-
-
-	
+		
 	this.initGame = function() {
-	
+		this.counter = 0;
+		this.previousGeneration = [];
+		this.currentGeneration = [];
+		for (var x = 0; x < this.numRows; x++) {
+			this.previousGeneration[x] = [];
+			this.currentGeneration[x] = [];
+			for (var y = 0; y < this.numCols; y++) {
+				this.previousGeneration[x][y] = 0;
+				this.currentGeneration[x][y] = 0;
+			}
+		}
+		// Test Glider
+		this.previousGeneration[0][2] = 1;
+		this.previousGeneration[1][3] = 1;
+		this.previousGeneration[2][1] = 1;
+		this.previousGeneration[2][2] = 1;
+		this.previousGeneration[2][3] = 1;
+		
+		this.clear();
+		this.playGame();
 	}
 	
 	this.initCanvas();
