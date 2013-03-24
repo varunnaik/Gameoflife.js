@@ -10,6 +10,7 @@ var GameOfLife = function(settings) {
         settings.bordercolour = border colour between cells and around canvas 
             (default black)
 		settings.drawBorder = draws border around each cell if true
+		settings.drawFrame = draws border around entire canvas if true
         settings.deadCellBackgroundcolour = background colour of dead cell
         settings.liveCellBackgroundColour = background colour of live cell
         settings.emptyCellBackgroundColour = background colour of empty cell 
@@ -44,6 +45,7 @@ var GameOfLife = function(settings) {
 	this.cellSize = 10;
 	this.borderColour = '#000000';
 	this.drawBorder = true;
+	this.drawFrame = true;
 	this.deadCellBackgroundColour = '#ff0000';
 	this.liveCellBackgroundColour = '#0000ff';
 	this.emptyCellBackgroundColour = '#ffffff';
@@ -75,6 +77,9 @@ var GameOfLife = function(settings) {
 		}
 		if (typeof settings.drawBorder !== 'undefined') {
 			this.drawBorder = settings.drawBorder;
+		}
+		if (typeof settings.drawFrame !== 'undefined') {
+			this.drawFrame = settings.drawFrame;
 		}
 		if (typeof settings.deadCellBackgroundcolour !== 'undefined') {
 			this.deadCellBackgroundcolour = settings.deadCellBackgroundcolour;
@@ -127,6 +132,16 @@ var GameOfLife = function(settings) {
 		/* Set Canvas Width and Height as specified */
 		this.canvas.height = ( this.numRows * this.cellSize) ;
 		this.canvas.width = (this.numCols * this.cellSize);
+		
+		if (this.drawFrame === true) {
+			if (this.drawBorder === false) {
+				this.canvas.setAttribute('style', "border: 1px solid " +
+															this.borderColour);
+			} else {
+				this.canvas.setAttribute('style', "border: 1px solid " +
+					this.borderColour + "; border-right: 0; border-bottom: 0");
+			}
+		}
 		
 		/* **Event handlers** */
 		
