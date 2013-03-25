@@ -32,7 +32,7 @@ var GameOfLife = function(settings) {
             or to simply clear it instantly
 		settings.enableRuleChange = is the user allowed to change rules
 			during the game?
-        settings.elementId = ID of the <canvas> to use to show this
+        settings.elementId = ID of the div we use to set up the <canvas>
             
         Initial State:
         
@@ -46,7 +46,7 @@ var GameOfLife = function(settings) {
 	this.numRows = 40;
 	this.numCols = 80;
 	this.speed = 100;
-	this.elementId = 'life_canvas';
+	this.elementId = 'life_canvas_container';
 	this.cellSize = 10;
 	this.borderColour = '#000000';
 	this.drawBorder = true;
@@ -142,7 +142,10 @@ var GameOfLife = function(settings) {
 		"4": {width: 36, height: 9, name: "Gosper Glider Gun", pattern:
 			{0: [24], 1: [22,24], 2: [12,13,20,21,34,35], 3: [11,15,20,21,34,35],
 			4: [0,1,10,16,20,21], 5: [0,1,10,14,16,17,22,24],  6: [10,16,24],
-			7: [11,15], 8: [12,13]}}
+			7: [11,15], 8: [12,13]}},
+		"5": {width: 18, height: 5, name: "Puffer 2", pattern:
+			{0: [1,2,3,15,16,17], 1: [0,3,14,17], 2: [3,8,9,10,17],
+			3: [3,8,11,17], 4: [2,7,16]}}
 	}
 
 	
@@ -153,9 +156,14 @@ var GameOfLife = function(settings) {
 	
     this.initCanvas = function() {
 		// Set up canvas and event handlers
-        this.canvas = document.getElementById('life_canvas');
+		
+		this.canvas = document.createElement('canvas');
+		this.canvas.setAttribute('id', 'life_canvas');
+		this.canvasContainer = document.getElementById(this.elementId);
+		this.canvasContainer.appendChild(this.canvas);
+		
 		this.context = this.canvas.getContext('2d');
-		console.log(this.context);
+
 		/* Set Canvas Width and Height as specified */
 		this.canvas.height = ( this.numRows * this.cellSize) ;
 		this.canvas.width = (this.numCols * this.cellSize);
@@ -184,7 +192,29 @@ var GameOfLife = function(settings) {
 		}
 		
 		if (this.enableReset || this.enableClear || this.enablePredefines) {
-			// Show toolbar when mouse enters canvas
+			
+			var toolbar = document.createElement('form');
+			toolbar.setAttribute('style', 
+				"height: 22px; padding: 3px; margin: 0; width: "+
+					(this.numCols * this.cellSize) +"px; margin: 0 auto;");
+			
+			var patternSelect = document.createElement('select');
+			patternSelect.setAttribute('id', "life_pattern_select");
+			for (var i in this.patternLibrary) {
+				var option = document.createElement('option');
+				option.innerHTML = this.patternLibrary[i].name;
+				option.value = i;
+				patternSelect.appendChild(option);
+			}
+			toolbar.appendChild(patternSelect);
+			var addButton = document.createElement('button');
+			addButton.innerHTML="Add";
+			var _this = this;
+			addButton.onclick = function(event) {_this.replacePattern.call(_this);event.preventDefault(); };
+			toolbar.appendChild(addButton);
+			
+			this.canvasContainer.appendChild(toolbar);
+				
 			
 		}
 		
@@ -201,7 +231,6 @@ var GameOfLife = function(settings) {
 			// set up the event handler
 		}
 		
-		//this.updateBoard();
     },
 
     this.clearCanvas = function(effect) {
@@ -223,8 +252,13 @@ var GameOfLife = function(settings) {
     },
 	
 	this.boardKillCell = function(row, col) {
-		// Kills the cell at row, col on the Canvas		
-		this.drawCell (col, row, this.deadCellBackgroundColour);
+		// Kills the cell at row, col on the Canvas	
+		
+		if (this.differenteateDeadEmptyCells) {
+			this.drawCell (col, row, this.deadCellBackgroundColour);
+		} else {
+			this.drawCell (col, row, this.emptyCellBackgroundColour);
+		}
 	},
 	
 	this.boardBringCellToLife = function(row, col) {
@@ -273,11 +307,46 @@ var GameOfLife = function(settings) {
 	
 	}
 	
+	this.createToolbar = function() {
+		// Create drawing toolbar and add it to the document
+		
+		var toolbar = document.createElement('form');
+		toolbar.style="height: 20px; padding: 3px; margin: 0";
+	
+	}
+	
+	this.replacePattern = function() {
+		// Gets the user selected pattern and adds it to the centre of the game
+		
+		var select = document.getElementById('life_pattern_select');
+		var pattern = select.options[select.options.selectedIndex].value;
+		
+		this.clear();
+		this.loadPattern(pattern, 0, 0, true);
+		
+		// Prevent inadvertent form submission
+		return false;
+	}
 	
 	/* ********************* END CANVAS AND DRAWING ***************************/
 	
 	/* ********************* EVENTS *******************************************/
 	
+	this.showBar = function() {
+		
+		if (this.toolbarVisible) return;
+		
+		// Show the toolbar wih transition
+	}
+	this.hideBar = function() {
+		// If barvisible and mouse in bar do not hide
+		
+		if (this.toolbarVisible === false) return;
+		
+		// Get mouse position
+		// If mouse inside bar or canvas forget it
+		// If mouse leaves bar quit
+	}	
 	this.mouseDown = function(event) {
 	
 	}
@@ -315,7 +384,6 @@ var GameOfLife = function(settings) {
 				}
 			}
 		}
-		console.log("Evolved " + count + " of " + (this.numRows * this.numCols));
 	}
 	
 	this.evolve = function(row, col) {
@@ -387,16 +455,16 @@ var GameOfLife = function(settings) {
 				var offsetStartY = 0;
 			}
 		}
-		console.log(offsetStartX, offsetStartY);
+	
 		// Draw the pattern into the internal array
 		for (var x in pattern.pattern) {
 			row = parseInt(x) + offsetStartX;
 			for (var y in pattern.pattern[x]) {				
 				col = pattern.pattern[x][y] + offsetStartY;
-				console.log(row, col);
-				this.previousGeneration[row][col] = 1;
+				this.currentGeneration[row][col] = 1;
 			}			
-		}		
+		}
+		this.updateBoard();
 	}
 	
 	this.changeRules = function(ruleId) {
@@ -422,8 +490,7 @@ var GameOfLife = function(settings) {
 	
 	this.playGame = function() {
 		// Plays the game continuously
-		console.log("Play.");
-
+		
 		// Evolve the current generation
 		this.tick();
 		
@@ -468,7 +535,7 @@ var GameOfLife = function(settings) {
 		}
 				
 		this.clear();
-		this.loadPattern(4, 0, 0, true);
+		this.loadPattern(5, 0, 0, true);
 		this.startGame();		
 	}
 	
