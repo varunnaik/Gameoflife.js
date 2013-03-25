@@ -198,6 +198,7 @@ var GameOfLife = function(settings) {
 				"height: 22px; padding: 3px; margin: 0; width: "+
 					(this.numCols * this.cellSize) +"px; margin: 0 auto;");
 			
+			// Pattern select dropdown
 			var patternSelect = document.createElement('select');
 			patternSelect.setAttribute('id', "life_pattern_select");
 			for (var i in this.patternLibrary) {
@@ -207,11 +208,26 @@ var GameOfLife = function(settings) {
 				patternSelect.appendChild(option);
 			}
 			toolbar.appendChild(patternSelect);
+			
+			// Add Button
 			var addButton = document.createElement('button');
 			addButton.innerHTML="Add";
 			var _this = this;
 			addButton.onclick = function(event) {_this.replacePattern.call(_this);event.preventDefault(); };
 			toolbar.appendChild(addButton);
+			
+			// Generation count indicator
+			var generationDivContainer = document.createElement('div');
+			generationDivContainer.setAttribute('style', 'width: 200px; ' +
+				'float: right; margin: 0;');
+			generationDivContainer.setAttribute("id", "life_generation_count");
+			generationDivContainer.innerHTML = "Current Generation: ";
+			var generationDiv = document.createElement('div');
+			generationDiv.setAttribute('style', 'width: 60px;'  +
+				'float: right; margin: 0;');
+			this.generationDiv = generationDiv; // Cache reference for fast updates
+			generationDivContainer.appendChild(generationDiv);
+			toolbar.appendChild(generationDivContainer);			
 			
 			this.canvasContainer.appendChild(toolbar);
 				
@@ -248,8 +264,30 @@ var GameOfLife = function(settings) {
 				this.drawCell(y, x, this.emptyCellBackgroundColour);
 			}
 		}
+		this.generationDiv.innerHTML = this.generationNumber;
         
     },
+	
+	this.quickClearCanvas = function() {
+		// Quickly and efficiently clears the canvas be making all living cells
+		// empty
+	
+		for (var i = 0; i < this.numRows; i++) {
+			for (var j = 0; j < this.numCols; j++) {
+				if (this.currentGeneration[i][j]) {
+					this.boardEmptyCell(i,j);
+				}
+				if (this.previousGeneration[i][j]) {
+					this.boardEmptyCell(i,j);
+				}				
+			}
+		}		
+	}
+	
+	this.boardEmptyCell = function(row, col) {
+		// Marks the cell at row, col as empty
+		this.drawCell (col, row, this.emptyCellBackgroundColour);
+	}
 	
 	this.boardKillCell = function(row, col) {
 		// Kills the cell at row, col on the Canvas	
@@ -282,6 +320,7 @@ var GameOfLife = function(settings) {
 				}				
 			}
 		}
+		this.generationDiv.innerHTML = this.generationNumber;
 	}
 	
 	this.drawCell = function(row, col, colour) {
@@ -384,6 +423,7 @@ var GameOfLife = function(settings) {
 				}
 			}
 		}
+		this.generationNumber += 1;
 	}
 	
 	this.evolve = function(row, col) {
@@ -484,7 +524,7 @@ var GameOfLife = function(settings) {
 				this.currentGeneration[i][j] = 0;
 			}
 		}
-		
+		this.generationNumber = 0;
 		this.clearCanvas();	
 	},
 	
@@ -535,6 +575,7 @@ var GameOfLife = function(settings) {
 		}
 				
 		this.clear();
+		this.clearCanvas();
 		this.loadPattern(5, 0, 0, true);
 		this.startGame();		
 	}
