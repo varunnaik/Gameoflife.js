@@ -128,6 +128,7 @@ var GameOfLife = function(settings) {
 	this.currentGeneration = [];
 	this.generationNumber = 0; // Which generation is the current generation?
 	this.intervalHandle = null; // SetInterval handle used when running game
+	this.togglePaused = false; // True if simulation paused
 	/* ********************* END SETTINGS INITIALISATION **********************/
 	
 	
@@ -193,44 +194,7 @@ var GameOfLife = function(settings) {
 		
 		if (this.enableReset || this.enableClear || this.enablePredefines) {
 			
-			var toolbar = document.createElement('form');
-			toolbar.setAttribute('style', 
-				"height: 22px; padding: 3px; margin: 0; width: "+
-					(this.numCols * this.cellSize) +"px; margin: 0 auto;");
-			
-			// Pattern select dropdown
-			var patternSelect = document.createElement('select');
-			patternSelect.setAttribute('id', "life_pattern_select");
-			for (var i in this.patternLibrary) {
-				var option = document.createElement('option');
-				option.innerHTML = this.patternLibrary[i].name;
-				option.value = i;
-				patternSelect.appendChild(option);
-			}
-			toolbar.appendChild(patternSelect);
-			
-			// Add Button
-			var addButton = document.createElement('button');
-			addButton.innerHTML="Add";
-			var _this = this;
-			addButton.onclick = function(event) {_this.replacePattern.call(_this);event.preventDefault(); };
-			toolbar.appendChild(addButton);
-			
-			// Generation count indicator
-			var generationDivContainer = document.createElement('div');
-			generationDivContainer.setAttribute('style', 'width: 200px; ' +
-				'float: right; margin: 0;');
-			generationDivContainer.setAttribute("id", "life_generation_count");
-			generationDivContainer.innerHTML = "Current Generation: ";
-			var generationDiv = document.createElement('div');
-			generationDiv.setAttribute('style', 'width: 60px;'  +
-				'float: right; margin: 0;');
-			this.generationDiv = generationDiv; // Cache reference for fast updates
-			generationDivContainer.appendChild(generationDiv);
-			toolbar.appendChild(generationDivContainer);			
-			
-			this.canvasContainer.appendChild(toolbar);
-				
+			this.createToolbar();			
 			
 		}
 		
@@ -350,7 +314,70 @@ var GameOfLife = function(settings) {
 		// Create drawing toolbar and add it to the document
 		
 		var toolbar = document.createElement('form');
-		toolbar.style="height: 20px; padding: 3px; margin: 0";
+		toolbar.setAttribute('style', 
+			"height: 22px; padding: 3px; margin: 0; width: "+
+				(this.numCols * this.cellSize) +"px; margin: 0 auto;");
+
+		// Pattern select dropdown
+		var patternSelect = document.createElement('select');
+		patternSelect.setAttribute('id', "life_pattern_select");
+		for (var i in this.patternLibrary) {
+			var option = document.createElement('option');
+			option.innerHTML = this.patternLibrary[i].name;
+			option.value = i;
+			patternSelect.appendChild(option);
+		}
+		toolbar.appendChild(patternSelect);
+
+		// Add Button
+		var addButton = document.createElement('button');
+		addButton.innerHTML="Add";
+		var _this = this;
+		addButton.onclick = function(event) { // Closure
+			_this.replacePattern.call(_this);
+			event.preventDefault();
+		};
+		toolbar.appendChild(addButton);
+		
+		// Pause button
+		var pauseButton = document.createElement('button');
+		pauseButton.innerHTML = 'Pause';
+		pauseButton.onclick = function(event) { // Closure
+			_this.togglePause.call(_this);
+			event.preventDefault();
+		};
+		this.pauseButton = pauseButton; // Cache for easy access
+		toolbar.appendChild(pauseButton);
+		
+		// Step button
+		var stepButton = document.createElement('button');
+		stepButton.innerHTML = 'Step';
+		stepButton.setAttribute('title', 'Pause to enable stepping');
+		stepButton.setAttribute('disabled', 'disabled');
+		stepButton.onclick = function(event) { // Closure
+			_this.step.call(_this);
+			event.preventDefault();
+		}
+		this.stepButton = stepButton; // Cache for easy access
+		toolbar.appendChild(stepButton);
+
+		// Generation count indicator
+		var generationDivContainer = document.createElement('div');
+		generationDivContainer.setAttribute('style', 'width: 200px; ' +
+			'float: right; margin: 0;');
+		generationDivContainer.setAttribute("id", "life_generation_count");
+		generationDivContainer.innerHTML = "Current Generation: ";
+		var generationDiv = document.createElement('div');
+		generationDiv.setAttribute('style', 'width: 60px;'  +
+			'float: right; margin: 0;');
+		this.generationDiv = generationDiv; // Cache reference for fast updates
+		generationDivContainer.appendChild(generationDiv);
+		toolbar.appendChild(generationDivContainer);
+
+
+		// Reset button
+
+		this.canvasContainer.appendChild(toolbar);	
 	
 	}
 	
@@ -360,11 +387,38 @@ var GameOfLife = function(settings) {
 		var select = document.getElementById('life_pattern_select');
 		var pattern = select.options[select.options.selectedIndex].value;
 		
+		this.stopGame();
 		this.clear();
 		this.loadPattern(pattern, 0, 0, true);
-		
+		if (this.togglePaused === false) this.startGame();
 		// Prevent inadvertent form submission
 		return false;
+	}
+	
+	this.togglePause = function() {
+		// Toggles paused state of simulation
+		if (this.togglePaused) {
+			this.togglePaused = false;
+			this.startGame();
+			this.pauseButton.innerHTML = "Pause";
+			this.stepButton.setAttribute('disabled', 'disabled');
+		} else {
+			this.togglePaused = true;
+			this.stopGame();
+			this.pauseButton.innerHTML = "Resume";
+			this.stepButton.removeAttribute('disabled');
+		}		
+	}
+	
+	this.step = function() {
+		// Steps the simulation forward one step
+		
+		// Don't mess up state of the internal array by writing to it twice
+		// Once here below, once in the regular tick called every interval secs
+		if (this.togglePaused === false) return;
+		
+		this.playGame();		
+		
 	}
 	
 	/* ********************* END CANVAS AND DRAWING ***************************/
@@ -524,6 +578,7 @@ var GameOfLife = function(settings) {
 				this.currentGeneration[i][j] = 0;
 			}
 		}
+
 		this.generationNumber = 0;
 		this.clearCanvas();	
 	},
@@ -557,6 +612,14 @@ var GameOfLife = function(settings) {
 			// Closure to call play game
 			_this.playGame();
 		}, this.speed);
+	}
+	
+	this.stopGame = function() {
+		// Stops a game in progress
+		
+		if (this.intervalHandle === null) return;
+		clearTimeout(this.intervalHandle);
+		this.intervalHandle = null;
 	}
 		
 	this.initGame = function() {
