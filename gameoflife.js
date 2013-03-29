@@ -1109,6 +1109,17 @@ var GameOfLife = function(settings) {
 	
 	}
 	
+	this.changeSelectedPatternInDropdown = function(index) {
+		// Changes the text in the 'select pattern' dropdown
+		var options = document.getElementById('life_pattern_select').options;
+		for (var i = 0; i < options.length; i++) {
+			if (options[i].value == index) {
+				options.selectedIndex = i;
+				break;
+			}
+		}
+	}
+	
 	this.replacePattern = function() {
 		// Gets the user selected pattern and adds it to the centre of the game
 		
@@ -1287,6 +1298,9 @@ var GameOfLife = function(settings) {
 			}			
 		}
 		this.updateBoard();
+		
+		// Set the pattern in the dropdown
+		
 	}
 	
 	this.changeRules = function(ruleId) {
@@ -1367,7 +1381,8 @@ var GameOfLife = function(settings) {
 				
 		this.clear();
 		this.clearCanvas();
-		this.loadPattern(5, 0, 0, true);
+		this.changeSelectedPatternInDropdown(70);
+		this.loadPattern(70, 0, 0, true);
 		this.startGame();		
 	}
 	
