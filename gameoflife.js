@@ -97,7 +97,8 @@ var GameOfLife = function(settings) {
 			this.emptyCellBackgroundColour = settings.emptyCellBackgroundColour;
 		}
 		if (typeof settings.differenteateDeadEmptyCells !== 'undefined') {
-			this.differenteateDeadEmptyCells = settings.differenteateDeadEmptyCells;
+			this.differenteateDeadEmptyCells = 
+				settings.differenteateDeadEmptyCells;
 		}
 		if (typeof settings.allowClick !== 'undefined') {
 			this.allowClick = settings.allowClick;
@@ -129,6 +130,8 @@ var GameOfLife = function(settings) {
 	this.generationNumber = 0; // Which generation is the current generation?
 	this.intervalHandle = null; // SetInterval handle used when running game
 	this.togglePaused = false; // True if simulation paused
+	this.previousMouseOverCell = [-1,-1]; // Last cell mouse was over
+	this.mousedown = false; // Current state of mouse button; used in drawing
 	/* ********************* END SETTINGS INITIALISATION **********************/
 	
 	
@@ -908,35 +911,41 @@ var GameOfLife = function(settings) {
 		}
 		
 		/* **Event handlers** */
+		var _this = this;
 		
-		if (this.enableClick) {
+		if (this.allowClick) {
 			// Register click event listener
 			
-			document.getElementById(this.elementId).addEventListener('click', 
-				function(event) {
-									
+			document.getElementById(this.elementId).addEventListener('mousedown', 
+				function(event) { // Closure
+					_this.mousedown = true;
 				}
 			);
-		
+			
+			document.addEventListener('mouseup', 
+				function(event) { // Closure
+					_this.mousedown = false;				
+				}
+			);
+
+			document.addEventListener('mousemove', 
+				function(event) { // Closure
+					_this.mousemove.call(_this, event);			
+				}
+			);
+			
+			document.getElementById(this.elementId).addEventListener('click', 
+				function(event) { // Closure
+					_this.mouseclick.call(_this, event);			
+				}
+			);
 		}
+		
 		
 		if (this.enableReset || this.enableClear || this.enablePredefines) {
 			
 			this.createToolbar();			
 			
-		}
-		
-		if (this.enableReset) {
-			// Show the enable reset button and set up the event handler
-		}
-		
-		if (this.enableClear) {
-			// Show the enable clear button and set up the event handler
-			
-		}
-		if (this.enablePredefines) {
-			// Show the listbox allowing the user to select a preset, and
-			// set up the event handler
 		}
 		
     },
@@ -1160,6 +1169,27 @@ var GameOfLife = function(settings) {
 		
 	}
 	
+	this.getCellBelowCursor = function(event) {
+		// Given a set of mouse coordinates in event, return the cell within 
+		// which the cursor lies
+		
+		// Get the mouse coordinates
+		var posX = event.pageX - this.canvas.offsetLeft;
+		var posY = event.pageY - this.canvas.offsetTop;
+		
+		// Did the event happen inside our canvas?
+		if (0 <= posX && posX < this.canvas.width && 
+				0 <= posY && posY < this.canvas.height) {
+				
+			var cellX = posX / this.cellSize;
+			var cellY = posY / this.cellSize;
+			
+			return [parseInt(cellX), parseInt(cellY)]
+		} else {
+			throw ("Mouse not over canvas.");
+		}
+	}
+	
 	/* ********************* END CANVAS AND DRAWING ***************************/
 	
 	/* ********************* EVENTS *******************************************/
@@ -1179,17 +1209,41 @@ var GameOfLife = function(settings) {
 		// If mouse inside bar or canvas forget it
 		// If mouse leaves bar quit
 	}	
-	this.mouseDown = function(event) {
+
 	
+	this.mousemove = function(event) {
+		// Handles mouse movement in the document
+		
+		// Only draw if mouse button held down
+		if (this.mousedown === false) return;
+		
+		// Ignore events outside the canvas
+		try {
+			var cell = this.getCellBelowCursor(event);
+		} catch(e) {
+			return;
+		}
+		
+		// Mouse still over the old cell? Ignore.
+		if (cell == this.previousMouseOverCell) return;
+		
+		this.previousMouseOverCell = cell;
+		
+		this.currentGeneration[cell[1]][cell[0]] = 1;
+		
+		this.boardBringCellToLife(cell[1], cell[0]);
 	}
 	
-	this.mouseMove = function(event) {
-	
+	this.mouseclick = function(event) {
+		// Handle mouse clicks on a cell
+		
+		var cell = this.getCellBelowCursor(event);
+		
+		this.currentGeneration[cell[1]][cell[0]] = 1;
+		
+		this.boardBringCellToLife(cell[1], cell[0]);
 	}
 	
-	this.mouseUp = function(event) {
-	
-	}
 	
 	/* ********************* END EVENTS ***************************************/
 	
