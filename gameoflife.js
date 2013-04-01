@@ -132,6 +132,7 @@ var GameOfLife = function(settings) {
 	this.togglePaused = false; // True if simulation paused
 	this.previousMouseOverCell = [-1,-1]; // Last cell mouse was over
 	this.mousedown = false; // Current state of mouse button; used in drawing
+	this.selectedPattern = null; // Pattern currently on canvas
 	/* ********************* END SETTINGS INITIALISATION **********************/
 	
 	
@@ -1097,6 +1098,16 @@ var GameOfLife = function(settings) {
 		}
 		this.stepButton = stepButton; // Cache for easy access
 		toolbar.appendChild(stepButton);
+		
+		// Clear button
+		var clearButton = document.createElement('button');
+		clearButton.innerHTML = 'Clear';
+		clearButton.onclick = function(event) { // Closure
+		
+			event.preventDefault();
+			_this.clearButtonClick.call(_this);
+		}
+		toolbar.appendChild(clearButton);
 
 		// Generation count indicator
 		var generationDivContainer = document.createElement('div');
@@ -1237,11 +1248,27 @@ var GameOfLife = function(settings) {
 	this.mouseclick = function(event) {
 		// Handle mouse clicks on a cell
 		
-		var cell = this.getCellBelowCursor(event);
+		// Ignore events outside the canvas
+		try {
+			var cell = this.getCellBelowCursor(event);
+		} catch(e) {
+			return;
+		}
 		
 		this.currentGeneration[cell[1]][cell[0]] = 1;
 		
 		this.boardBringCellToLife(cell[1], cell[0]);
+	}
+	
+	this.clearButtonClick = function(event) {
+		// Clears the canvas and resets the original pattern
+
+		this.stopGame();
+		this.clear();
+		this.changeSelectedPatternInDropdown(this.selectedPattern);
+		this.loadPattern(this.selectedPattern, 0, 0, true);
+		this.startGame();
+		
 	}
 	
 	
@@ -1322,6 +1349,7 @@ var GameOfLife = function(settings) {
 		}
 		
 		var pattern = this.patternLibrary[patternId];
+		this.selectedPattern = patternId;
 		
 		if (centre) {
 			// Draw the pattern at the centre of the canvas.
