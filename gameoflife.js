@@ -1267,7 +1267,9 @@ var GameOfLife = function(settings) {
 		this.clear();
 		this.changeSelectedPatternInDropdown(this.selectedPattern);
 		this.loadPattern(this.selectedPattern, 0, 0, true);
-		this.startGame();
+		if (this.togglePaused === false) {
+			this.startGame();
+		}
 		
 	}
 	
